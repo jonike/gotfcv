@@ -1,17 +1,14 @@
 FROM ubuntu:14.04
 
+# Install depends
 ENV DEBIAN_FRONTEND noninteractive
 ENV INITRD No
 ENV LANG en_US.UTF-8
-ENV GOVERSION 1.10.1
-ENV GOROOT /opt/go
-ENV GOPATH /go
 
-
-# Install depends
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         libc6-dev \
+        curl \
         g++ \
         gcc \
 		zip \
@@ -37,6 +34,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	    && rm -rf /var/lib/apt/lists/*
 
 # Install GoLang 1.10.2
+ENV GOVERSION 1.10.2
+ENV GOROOT /opt/go
+ENV GOPATH /go
+
 RUN cd /opt \
     && wget https://storage.googleapis.com/golang/go${GOVERSION}.linux-amd64.tar.gz \
     && tar zxf go${GOVERSION}.linux-amd64.tar.gz && rm go${GOVERSION}.linux-amd64.tar.gz \
@@ -45,7 +46,7 @@ RUN cd /opt \
 
 WORKDIR /
 
-# Install JasPer
+# Install JasPer 2.0.14
 # RUN mkdir /tmp/jasper \
 #    && mkdir /tmp/jasper/build \
 #	&& cd /tmp/jasper \
@@ -61,13 +62,16 @@ WORKDIR /
 #   && rm -rf /tmp/jasper
 
 # Install OpenCV
-ENV OPENCV_VERSION="3.4.1"
+ENV OPENCV_VERSION 3.4.1
+
 RUN mkdir /tmp/opencv \
 	&& cd /tmp/opencv \
 	&& wget -O opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip \
 	&& unzip opencv.zip \
 	&& wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip \
 	&& unzip opencv_contrib.zip
+
+ENV OPENCV_CPU_DISABLE SSSE3,AVX,AVX2,POPCNT,SSE4.1,SSE4.2
 
 RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	&& mkdir build \
@@ -78,7 +82,7 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	         -D BUILD_DOCS=OFF BUILD_EXAMPLES=OFF \
 	         -D BUILD_TESTS=OFF \
 	         -D WITH_CUDA=OFF \
-             -D ENABLE_AVX=ON \
+             -D ENABLE_AVX=OFF \
              -D WITH_OPENGL=ON \
              -D WITH_OPENCL=ON \
              -D WITH_IPP=ON \
@@ -91,9 +95,11 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	         -D BUILD_opencv_python=OFF \
 	         -D BUILD_opencv_python2=OFF \
 	         -D CMAKE_BUILD_TYPE=RELEASE \
+	         -D CPU_BASELINE=SSE,SSE2,SSE3 \
 	         -D BUILD_opencv_python3=OFF .. \
 	&& make -j4 \
 	&& make install \
+	&& echo "/usr/local/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/opencv.conf
 	&& ldconfig	\
 	&& cd ~ \
     && rm -rf /tmp/opencv
@@ -101,9 +107,8 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 # Install TensorFlow C library
 RUN curl -L \
    "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-1.8.0.tar.gz" | \
-   tar -C "/usr/local" -xz
-
-RUN ldconfig
+   tar -C "/usr/local" -xz \
+   && ldconfig
 
 # Hide some warnings
 ENV TF_CPP_MIN_LOG_LEVEL 2
