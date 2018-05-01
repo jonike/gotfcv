@@ -1,4 +1,4 @@
-FROM ubuntu:14:04
+FROM ubuntu:14.04
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV INITRD No
@@ -42,24 +42,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		software-properties-common \
 	    && rm -rf /var/lib/apt/lists/*
 
-
-
 WORKDIR /
 
 # Install JasPer
-RUN mkdir /tmp/jasper \
-    && mkdir /tmp/jasper/build \
-	&& cd /tmp/jasper \
-	&& wget -O jasper.zip https://github.com/mdadams/jasper/archive/version-2.0.14.zip \
-	&& unzip jasper.zip \
-	&& cd /tmp/jasper/jasper-version-2.0.14 \
-	&& cmake -G "Unix Makefiles" -H/tmp/jasper/jasper-version-2.0.14 -B/tmp/jasper/build \
-	        -DCMAKE_INSTALL_PREFIX=/usr/local \
-	&& cd /tmp/jasper/build \
-	&& make \
-	&& make install \
-	&& cd ~ \
-    && rm -rf /tmp/jasper
+# RUN mkdir /tmp/jasper \
+#    && mkdir /tmp/jasper/build \
+#	&& cd /tmp/jasper \
+#	&& wget -O jasper.zip https://github.com/mdadams/jasper/archive/version-2.0.14.zip \
+#	&& unzip jasper.zip \
+#	&& cd /tmp/jasper/jasper-version-2.0.14 \
+#	&& cmake -G "Unix Makefiles" -H/tmp/jasper/jasper-version-2.0.14 -B/tmp/jasper/build \
+#	        -DCMAKE_INSTALL_PREFIX=/usr/local \
+#	&& cd /tmp/jasper/build \
+#	&& make \
+#	&& make install \
+#	&& cd ~ \
+#   && rm -rf /tmp/jasper
 
 # Install OpenCV
 ENV OPENCV_VERSION="3.4.1"
