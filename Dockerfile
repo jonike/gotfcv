@@ -1,5 +1,7 @@
 FROM debian:jessie
 
+MAINTAINER Alexander Garin<garin1221@yandex.ru>
+
 # Install depends
 ENV LANG C.UTF-8
 
@@ -69,8 +71,6 @@ RUN mkdir /tmp/opencv \
 	&& wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip \
 	&& unzip opencv_contrib.zip
 
-# ENV OPENCV_CPU_DISABLE SSSE3,AVX,AVX2,POPCNT,SSE4.1,SSE4.2
-
 RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	&& mkdir build \
 	&& cd build \
@@ -92,20 +92,19 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	         -D BUILD_opencv_java=OFF \
 	         -D BUILD_opencv_python=OFF \
 	         -D BUILD_opencv_python2=OFF \
-	         -D CMAKE_BUILD_TYPE=RELEASE \
-	         # -D CPU_BASELINE=SSE,SSE2,SSE3 \
-	         # -D CPU_DISPATCH= \
+	         -D CPU_BASELINE=SSE,SSE2,SSE3 \
+	         -D CPU_DISPATCH= \
 	         -D BUILD_opencv_python3=OFF .. \
-	&& make -j4 \
+	&& make -j$(nproc) \
 	&& make install \
-	&& echo "/usr/local/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/opencv.conf \
-	&& ldconfig	\
+	&& ldconfig \
 	&& cd ~ \
     && rm -rf /tmp/opencv
 
 # Install TensorFlow C library
+ENV TENSORFLOW_VERSION 1.5.0
 RUN curl -L \
-   "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-1.8.0.tar.gz" | \
+   "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-${TENSORFLOW_VERSION}.tar.gz" | \
    tar -C "/usr/local" -xz \
    && ldconfig
 
