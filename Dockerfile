@@ -1,9 +1,7 @@
-FROM ubuntu:14.04
+FROM debian:jessie
 
 # Install depends
-ENV DEBIAN_FRONTEND noninteractive
-ENV INITRD No
-ENV LANG en_US.UTF-8
+ENV LANG C.UTF-8
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
@@ -71,7 +69,7 @@ RUN mkdir /tmp/opencv \
 	&& wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip \
 	&& unzip opencv_contrib.zip
 
-ENV OPENCV_CPU_DISABLE SSSE3,AVX,AVX2,POPCNT,SSE4.1,SSE4.2
+# ENV OPENCV_CPU_DISABLE SSSE3,AVX,AVX2,POPCNT,SSE4.1,SSE4.2
 
 RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	&& mkdir build \
@@ -82,7 +80,7 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	         -D BUILD_DOCS=OFF BUILD_EXAMPLES=OFF \
 	         -D BUILD_TESTS=OFF \
 	         -D WITH_CUDA=OFF \
-             -D ENABLE_AVX=OFF \
+             -D ENABLE_AVX=ON \
              -D WITH_OPENGL=ON \
              -D WITH_OPENCL=ON \
              -D WITH_IPP=ON \
@@ -95,11 +93,12 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	         -D BUILD_opencv_python=OFF \
 	         -D BUILD_opencv_python2=OFF \
 	         -D CMAKE_BUILD_TYPE=RELEASE \
-	         -D CPU_BASELINE=SSE,SSE2,SSE3 \
+	         # -D CPU_BASELINE=SSE,SSE2,SSE3 \
+	         # -D CPU_DISPATCH= \
 	         -D BUILD_opencv_python3=OFF .. \
 	&& make -j4 \
 	&& make install \
-	&& echo "/usr/local/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/opencv.conf
+	&& echo "/usr/local/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/opencv.conf \
 	&& ldconfig	\
 	&& cd ~ \
     && rm -rf /tmp/opencv
