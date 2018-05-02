@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		libjpeg-dev \
 		libpng-dev \
 		libtiff-dev \
-		libjasper-dev \
+		# libjasper-dev \
 		libdc1394-22-dev \
 		software-properties-common \
 	    && rm -rf /var/lib/apt/lists/*
@@ -37,7 +37,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV GOVERSION 1.10.2
 ENV GOROOT /opt/go
 ENV GOPATH /go
-
 RUN cd /opt \
     && wget https://storage.googleapis.com/golang/go${GOVERSION}.linux-amd64.tar.gz \
     && tar zxf go${GOVERSION}.linux-amd64.tar.gz && rm go${GOVERSION}.linux-amd64.tar.gz \
@@ -47,23 +46,23 @@ RUN cd /opt \
 WORKDIR /
 
 # Install JasPer 2.0.14
-# RUN mkdir /tmp/jasper \
-#    && mkdir /tmp/jasper/build \
-#	&& cd /tmp/jasper \
-#	&& wget -O jasper.zip https://github.com/mdadams/jasper/archive/version-2.0.14.zip \
-#	&& unzip jasper.zip \
-#	&& cd /tmp/jasper/jasper-version-2.0.14 \
-#	&& cmake -G "Unix Makefiles" -H/tmp/jasper/jasper-version-2.0.14 -B/tmp/jasper/build \
-#	        -DCMAKE_INSTALL_PREFIX=/usr/local \
-#	&& cd /tmp/jasper/build \
-#	&& make \
-#	&& make install \
-#	&& cd ~ \
-#   && rm -rf /tmp/jasper
+ENV JASPER_VERSION 2.0.14
+RUN mkdir /tmp/jasper \
+    && mkdir /tmp/jasper/build \
+	&& cd /tmp/jasper \
+	&& wget -O jasper.zip https://github.com/mdadams/jasper/archive/version-${JASPER_VERSION}.zip \
+	&& unzip jasper.zip \
+	&& cd /tmp/jasper/jasper-version-${JASPER_VERSION} \
+	&& cmake -G "Unix Makefiles" -H/tmp/jasper/jasper-version-${JASPER_VERSION} -B/tmp/jasper/build \
+	        -DCMAKE_INSTALL_PREFIX=/usr/local \
+	&& cd /tmp/jasper/build \
+	&& make \
+	&& make install \
+	&& cd ~ \
+    && rm -rf /tmp/jasper
 
 # Install OpenCV
 ENV OPENCV_VERSION 3.4.1
-
 RUN mkdir /tmp/opencv \
 	&& cd /tmp/opencv \
 	&& wget -O opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip \
@@ -80,7 +79,7 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	         -D BUILD_DOCS=OFF BUILD_EXAMPLES=OFF \
 	         -D BUILD_TESTS=OFF \
 	         -D WITH_CUDA=OFF \
-             -D ENABLE_AVX=ON \
+             -D ENABLE_AVX=OFF \
              -D WITH_OPENGL=ON \
              -D WITH_OPENCL=ON \
              -D WITH_IPP=ON \
@@ -93,7 +92,7 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
 	         -D BUILD_opencv_python=OFF \
 	         -D BUILD_opencv_python2=OFF \
 	         -D CPU_BASELINE=SSE,SSE2,SSE3 \
-	         -D CPU_DISPATCH= \
+	         -D CPU_DISPATCH=SSE3 \
 	         -D BUILD_opencv_python3=OFF .. \
 	&& make -j$(nproc) \
 	&& make install \
@@ -102,7 +101,7 @@ RUN cd /tmp/opencv/opencv-${OPENCV_VERSION} \
     && rm -rf /tmp/opencv
 
 # Install TensorFlow C library
-ENV TENSORFLOW_VERSION 1.5.0
+ENV TENSORFLOW_VERSION 1.8.0
 RUN curl -L \
    "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-${TENSORFLOW_VERSION}.tar.gz" | \
    tar -C "/usr/local" -xz \
